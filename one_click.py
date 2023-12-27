@@ -377,7 +377,7 @@ def launch_webui():
 
 if __name__ == "__main__":
     # Verifies we are in a conda environment
-    check_env()
+    # check_env()
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--update', action='store_true', help='Update the web UI.')
