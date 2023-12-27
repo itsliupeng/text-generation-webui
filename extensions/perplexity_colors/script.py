@@ -6,6 +6,7 @@ import torch
 from transformers import LogitsProcessor
 
 from modules import html_generator, shared
+from .es import es_search
 
 params = {
     'active': True,
@@ -90,6 +91,34 @@ def logits_processor_modifier(logits_processor_list, input_ids):
         ppl_logits_processor = PerplexityLogits(verbose=params['verbose'])
         logits_processor_list.append(ppl_logits_processor)
 
+
+def history_modifier(history):
+    """
+    Modifies the chat history.
+    Only used in chat mode.
+    """
+    print(f"history internal: {history['internal']}")
+    return history
+
+
+def input_modifier(string, state, is_chat=False):
+    """
+    In default/notebook modes, modifies the whole prompt.
+
+    In chat mode, it is the same as chat_input_modifier but only applied
+    to "text", here called "string", and not to "visible_text".
+    """
+    
+    
+    doc_id_list, score_list, content_list, cluster_id = es_search(string, data_kind="Wechat", count=3)
+    MAX_LEN = 1024
+    recall_str = ""
+    if len(content_list) > 0:
+        recall_str = "\n\n".join(content_list)[:MAX_LEN]
+        string = f"参考内容: {recall_str}\n\n请回答下面问题: {string}"    
+
+    print(f"input_modifier: {string}")  
+    return string
 
 def output_modifier(text):
     global ppl_logits_processor
